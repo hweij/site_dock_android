@@ -1,0 +1,35 @@
+{
+  "name": "site_dock",
+  "displayName": "Site dock",
+  "version": "0.0.1",
+  "description": "Site dock - Cordova",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "bigcamp",
+  "license": "UNLICENSED",
+  "cordova": {
+    "platforms": [
+      "android"
+    ],
+    "plugins": {
+      "cordova-plugin-file": {
+        "ANDROIDX_WEBKIT_VERSION": "1.4.0"
+      },
+      "cordova-plugin-zip": {}
+    }
+  },
+  "devDependencies": {
+    "@types/wicg-file-system-access": "^2023.10.5",
+    "cordova-android": "^12.0.1",
+    "cordova-plugin-file": "^8.1.3",
+    "cordova-plugin-zip": "^3.1.0"
+  },
+  "dependencies": {
+    "@types/cordova": "^11.0.3"
+  }
+}
