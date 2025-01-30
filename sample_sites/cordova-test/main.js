@@ -1,5 +1,34 @@
 // @ts-check
 
+var _cordovaActive = false;
+
+function initCordova() {
+    return new Promise(
+        /**
+         *
+         * @param {(b: boolean) => void} resolve
+         */
+        (resolve, _reject) => {
+            const onDeviceReady = () => {
+                _cordovaActive = true;
+                LOG("Running as Cordova app");
+                resolve(true);
+            }
+
+            try {
+                if (cordova) {
+                    // Wait for the deviceready event before using any of Cordova's device APIs.
+                    // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
+                    document.addEventListener('deviceready', onDeviceReady, false);
+                }
+            }
+            catch (e) {
+                LOG("Running as website");
+                resolve(false);
+            }
+        });
+}
+
 function getRootDir() {
     const loc = window.location;
     LOG("LOCATION");
@@ -79,18 +108,6 @@ function loadBufferAsset(fpath) {
     }
 }
 
-// Wait for the deviceready event before using any of Cordova's device APIs.
-// See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
-document.addEventListener('deviceready', onDeviceReady, false);
-
-var _cordovaActive = false;
-
-function onDeviceReady() {
-    _cordovaActive = true;
-    LOG("Device ready");
-    LOG("Load asset TEST2");
-    loadTextAsset("index.html").then((v) => LOG(v));
-}
 
 /**
  * @param {string} rpath
@@ -144,3 +161,9 @@ function corLoadLocalFile(rpath, format, cb, err) {
             err(`Error reading file ${fpath}`);
         });
 }
+
+initCordova().then((b) => {
+    LOG(b ? "Running as Cordova app" : "Running as web site");
+    loadTextAsset("assets/test.txt").then((v) => LOG(v));
+    loadBufferAsset("assets/test.png").then((v) => LOG(`${v.byteLength} bytes`));
+});
