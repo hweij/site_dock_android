@@ -7,12 +7,25 @@ function getRootDir() {
     return loc.href.replace("/index.html", "/");
 }
 
-function loadStringAsset(fpath) {
-    return loadLocalAsset(fpath, "string");
+/**
+ * @param {string} fpath
+ */
+function loadTextAsset(fpath) {
+    if (_cordovaActive) {
+        return loadLocalAsset(fpath, "string");
+    }
+    else {
+        return fetch(fpath).then(res => res.text());
+    }
 }
 
-function loadDataAsset(fpath) {
-    return loadLocalAsset(fpath, "buffer");
+function loadBufferAsset(fpath) {
+    if (_cordovaActive) {
+        return loadLocalAsset(fpath, "buffer");
+    }
+    else {
+        return fetch(fpath).then(res => res.arrayBuffer());
+    }
 }
 
 /**
@@ -21,18 +34,8 @@ function loadDataAsset(fpath) {
  * @param {"string" | "buffer"} format;
  */
 async function loadLocalAsset(fpath, format) {
-    console.log("Window props:")
-    if (_cordovaActive) {
-        console.log(`Cordova present`);
-        console.log(cordova);
-        const res = await corLoadLocalFile(getRootDir() + fpath, format);
-        console.log("PROMISE");
-        console.log(res);
-        return res;
-    }
-    else {
-        console.log("Cordova not present");
-    }
+    const res = corLoadLocalFile(getRootDir() + fpath, format);
+    return res;
 }
 
 // Wait for the deviceready event before using any of Cordova's device APIs.
@@ -44,7 +47,8 @@ var _cordovaActive = false;
 function onDeviceReady() {
     _cordovaActive = true;
     console.log("Device ready");
-    loadStringAsset("index.html");
+    console.log("Load asset TEST");
+    loadTextAsset("index.html").then((v) => console.log(v));
 }
 
 /**
@@ -55,8 +59,7 @@ function onDeviceReady() {
 function corLoadLocalFile(fpath, format) {
     return new Promise(
         /**
-         *
-         * @param {(v: string | ArrayBuffer | null) => void} resolve
+         * @param {(v: string | ArrayBuffer) => void} resolve
          * @param {(v: string) => void} reject
          */
         (resolve, reject) => {
@@ -77,7 +80,12 @@ function corLoadLocalFile(fpath, format) {
                             else {
                                 console.log("Read text file");
                             }
-                            resolve(this.result);
+                            if (this.result !== null) {
+                                resolve(this.result);
+                            }
+                            else {
+                                reject("Received empty result");
+                            }
                         }
 
                         reader.onerror = function (e) {
