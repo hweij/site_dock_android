@@ -24,6 +24,9 @@ CORD.initCordova((status) => {
     showDebug("Callback in main");
     showDebug(status);
     updateSitesList();
+
+    console.log("Main directory");
+    console.log(import.meta.url);
 });
 
 showDebug("JavaScript OK");
@@ -157,7 +160,7 @@ function getLocalSites(dir, cb) {
 
 bLoadRemote.onclick = () => {
     if (startURL) {
-        window.open(startURL);
+        window.open(startURL, "site_dock_remote");
     }
 }
 
