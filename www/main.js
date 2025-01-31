@@ -2,6 +2,7 @@
 
 import * as CORD from "./cordova_init.js";
 import { showDebug } from "./util.js";
+import "./web-components.js";
 
 const bLoadRemote = /** @type HTMLButtonElement */(document.getElementById("bLoadRemote"));
 const inputStartURL = /** @type HTMLInputElement */(document.getElementById("inputStartURL"));
@@ -68,13 +69,23 @@ bPickFile.onclick = async () => {
     }
 }
 
+/**
+ * @param {HTMLTemplateElement} template
+ */
+function elementFromTemplate(template) {
+    const frag = /** @type DocumentFragment */(template.content.cloneNode(true));
+    return /** @type HTMLElement */(frag.firstElementChild);
+}
+
 function updateSitesList() {
+    const template = /** @type HTMLTemplateElement */ (document.getElementById("siteEntry"));
     getLocalSites(CORD.getDataDirectory(), (sites) => {
         const divSites = /** @type HTMLElement */(document.getElementById("divSites"));
         divSites.innerHTML = "";
         for (const site of sites) {
-            const el = document.createElement("div");
-            el.className = "site-entry";
+            const el = document.createElement("site-entry");
+            // const el = elementFromTemplate(template);
+            console.log(el);
             el.innerText = site.info?.name || site.name;
             divSites.appendChild(el);
             el.onclick = () => CORD.openSite(`${site.name}/index.html`);

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+
+<body>
+    <script src="web-components.js" type="module"></script>
+
+    <div id="divTest" style="width: 300px;"></div>
+
+    <script type="module">
+        const divTest = /** @type HTMLDivElement */ (document.getElementById("divTest"));
+        for (let i = 0; i < 5; i++) {
+            const el = document.createElement("site-entry");
+            divTest.appendChild(el);
+        }
+    </script>
+</body>
+
+</html>
