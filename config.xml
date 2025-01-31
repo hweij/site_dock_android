@@ -12,7 +12,7 @@
     <!-- <preference name="orientation" value="portrait" /> -->
     <preference name="Fullscreen" value="true" />
 
-
+    <!-- When enabled, it uses the "old" file protocol, which doesn't support fetch -->
     <preference name="AndroidInsecureFileModeEnabled" value="true" />
 
 
