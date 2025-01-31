@@ -99,8 +99,12 @@ function updateSitesList() {
 async function deleteSite(name) {
     console.log(`DELETE SITE ${name}`)
     const path = CORD.getDataDirectory();
-    await CORD.deleteFile(`${path}${name}`);
-    await CORD.deleteFile(`${path}${name}.zip`);
+    try {
+        await CORD.deleteFile(`${path}${name}`);
+    }
+    catch (e) {
+        console.error(e);
+    }
     updateSitesList();
 }
 

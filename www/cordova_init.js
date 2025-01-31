@@ -145,6 +145,7 @@ function listDirectory(fileUrl) {
 /**
  * @param {string} siteName
  * @param {ArrayBuffer} buffer
+ * @param {() => void} cb
  */
 export function saveAndUnpackSite(siteName, buffer, cb) {
     if (_cordovaActive) {
@@ -165,7 +166,7 @@ export function saveAndUnpackSite(siteName, buffer, cb) {
                         zip.unzip(src, dst, (err) => {
                             console.log("ZIP DONE: " + err);
                             if (!err) {
-                                cb();
+                                deleteFile(src).then(cb, e => console.error(e));
                             }
                         });
                     }
