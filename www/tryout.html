@@ -9,15 +9,20 @@
 </head>
 
 <body>
-    <script src="web-components.js" type="module"></script>
+    <!-- <script src="web-components.js" type="module"></script> -->
 
     <div id="divTest" style="width: 300px;"></div>
 
     <script type="module">
+        import { SiteEntry } from "./web-components.js";
         const divTest = /** @type HTMLDivElement */ (document.getElementById("divTest"));
         for (let i = 0; i < 5; i++) {
-            const el = document.createElement("site-entry");
-            divTest.appendChild(el);
+            const el = SiteEntry.create(divTest);
+
+            el.onAction = (action) => console.log(action);
+
+            console.log(el);
+            el.content = `Item ${i}`;
         }
     </script>
 </body>
