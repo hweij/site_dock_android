@@ -12,6 +12,7 @@ function initCordova() {
             const onDeviceReady = () => {
                 _cordovaActive = true;
                 LOG("Running as Cordova app");
+                redirectFetch();
                 resolve(true);
             }
 
@@ -27,6 +28,36 @@ function initCordova() {
                 resolve(false);
             }
         });
+}
+
+/**
+ * Redirect fetch if running in Cordova mode. All file fetches will be
+ * served by a local file.
+ */
+function redirectFetch() {
+    window.fetch = new Proxy(window.fetch, {
+        apply: function (target, that, args) {
+            // args holds argument of fetch function
+            // Do whatever you want with fetch request
+            console.log("fetch");
+            console.log(args);
+            if (!args[0].startsWith("http")) {
+                console.log(`File fetch [${args[0]}]`);
+                return new Promise((accept, reject) => {
+                    // TODO: create a proper response, not just a text string in the bodyInit
+                    // Make sure it works for all assets (fonts, audio, etc.)
+                    // Set proper status, etc.
+                    loadBufferAsset(args[0]).then(buffer => accept(new Response(buffer, { status: 200, statusText: "OK" })));
+                });
+            }
+            let temp = target.apply(that, args);
+            temp.then((res) => {
+                // After completion of request
+                console.log(res);
+            });
+            return temp;
+        },
+    });
 }
 
 function getRootDir() {
@@ -164,6 +195,13 @@ function corLoadLocalFile(rpath, format, cb, err) {
 
 initCordova().then((b) => {
     LOG(b ? "Running as Cordova app" : "Running as web site");
-    loadTextAsset("assets/test.txt").then((v) => LOG(v));
-    loadBufferAsset("assets/test.png").then((v) => LOG(`${v.byteLength} bytes`));
+    // loadTextAsset("assets/test.txt").then((v) => LOG(v));
+    // loadBufferAsset("assets/test.png").then((v) => LOG(`${v.byteLength} bytes`));
+    // TEST fetch redirect
+    fetch("assets/test.txt").then(res => res.text()).then(txt => console.log(txt));
+    fetch("assets/test.png").then(res => res.arrayBuffer()).then(buf => LOG(`Buffer: ${buf.byteLength} bytes`));
+    // fetch("https://www.nu.nl/").then(res => {
+    //     console.log(`Remote, type =`);
+    //     console.log(res.body);
+    // });
 });
