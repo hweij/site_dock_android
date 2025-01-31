@@ -84,12 +84,24 @@ function updateSitesList() {
                         CORD.openSite(`${site.name}/index.html`);
                         break;
                     case "delete":
-                        console.log(`DELETE SITE ${site.name}?`)
+                        deleteSite(site.name);
                         break;
                 }
             }
         }
     })
+}
+
+/**
+ *
+ * @param {string} name
+ */
+async function deleteSite(name) {
+    console.log(`DELETE SITE ${name}`)
+    const path = CORD.getDataDirectory();
+    await CORD.deleteFile(`${path}${name}`);
+    await CORD.deleteFile(`${path}${name}.zip`);
+    updateSitesList();
 }
 
 /**

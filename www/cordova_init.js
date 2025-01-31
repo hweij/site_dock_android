@@ -62,6 +62,36 @@ export function openSite(url) {
     window.open(`${fileUrl}${url}`);
 }
 
+export async function deleteFile(url) {
+    console.log(`Delete file ${url}`);
+
+    return new Promise(
+        /**
+         *
+         * @param {(v: any) => void} resolve
+         * @param {(err: string) => void} reject
+         */
+        (resolve, reject) => {
+            window.resolveLocalFileSystemURL(url,
+                entry => {
+                    if (entry.isDirectory) {
+                        /** @type DirectoryEntry */(entry).removeRecursively(
+                        () => resolve(undefined),
+                        err => reject(`Error deleting file ${url}, error = ${err}`));
+                    }
+                    else {
+                        entry.remove(
+                            () => resolve(undefined),
+                            err => reject(`Error deleting file ${url}, error = ${err}`)
+                        );
+                    }
+                },
+                err => reject(`Error deleting file ${url}, error = ${err}`)
+            );
+        }
+    )
+}
+
 /**
  *
  * @param {string} fileUrl
