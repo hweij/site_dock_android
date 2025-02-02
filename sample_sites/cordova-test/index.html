@@ -6,6 +6,9 @@
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>Page Title</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <!-- This adds support for cordova and file fetches -->
+    <script src="cordova-android.js" type="module"></script>
 </head>
 
 <body>
@@ -15,8 +18,7 @@
 LOGS:
 
 </pre>
-    <script src="file:///android_asset/www/cordova.js" onerror="console.warn('Cordova not found')"></script>
-    <script src="main.js" type="module"></script>
+    <!-- <script src="file:///android_asset/www/cordova.js" onerror="console.warn('Cordova not found')"></script> -->
 </body>
 
 </html>

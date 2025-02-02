@@ -1,5 +1,9 @@
 // @ts-check
 
+// import { addScript as loadCordova } from "./android-cordova.js";
+
+const CORDOVA_LOCATION = "file:///android_asset/www/cordova.js";
+
 var _cordovaActive = false;
 
 function initCordova() {
@@ -11,7 +15,7 @@ function initCordova() {
         (resolve, _reject) => {
             const onDeviceReady = () => {
                 _cordovaActive = true;
-                LOG("Running as Cordova app");
+                LOG("Cordova device ready");
                 redirectFetch();
                 resolve(true);
             }
@@ -24,7 +28,7 @@ function initCordova() {
                 }
             }
             catch (e) {
-                LOG("Running as website");
+                LOG("Cordova device not initialized");
                 resolve(false);
             }
         });
@@ -60,7 +64,7 @@ function redirectFetch() {
     });
 }
 
-function getRootDir() {
+export function getRootDir() {
     const loc = window.location;
     LOG("LOCATION");
     LOG(loc);
@@ -73,38 +77,6 @@ function LOG(s) {
         win.insertAdjacentText("beforeend", `${s}\n`);
     }
     console.log(s);
-}
-
-/**
- * @param {string} fpath
- */
-function loadTextAsset(fpath) {
-    if (_cordovaActive) {
-        return new Promise(
-            /**
-             * @param {(v: string) => void} resolve
-             * @param {(v: string) => void} reject
-             */
-            (resolve, reject) => {
-                corLoadLocalFile(fpath, "string",
-                    v => {
-                        if (v instanceof ArrayBuffer) {
-                            throw new Error("Unexpected return type");
-                        }
-                        else {
-                            resolve(v);
-                        }
-                    },
-                    err => {
-                        reject(err);
-                    }
-                );
-            }
-        );
-    }
-    else {
-        return fetch(fpath).then(res => res.text());
-    }
 }
 
 /**
@@ -138,7 +110,6 @@ function loadBufferAsset(fpath) {
         return fetch(fpath).then(res => res.arrayBuffer());
     }
 }
-
 
 /**
  * @param {string} rpath
@@ -193,15 +164,48 @@ function corLoadLocalFile(rpath, format, cb, err) {
         });
 }
 
-initCordova().then((b) => {
-    LOG(b ? "Running as Cordova app" : "Running as web site");
-    // loadTextAsset("assets/test.txt").then((v) => LOG(v));
-    // loadBufferAsset("assets/test.png").then((v) => LOG(`${v.byteLength} bytes`));
-    // TEST fetch redirect
-    fetch("assets/test.txt").then(res => res.text()).then(txt => console.log(txt));
-    fetch("assets/test.png").then(res => res.arrayBuffer()).then(buf => LOG(`Buffer: ${buf.byteLength} bytes`));
-    // fetch("https://www.nu.nl/").then(res => {
-    //     console.log(`Remote, type =`);
-    //     console.log(res.body);
-    // });
-});
+try {
+    await loadCordova();
+}
+catch (e) {
+    console.log(e);
+}
+finally {
+    initCordova().then((b) => {
+        LOG(b ? "Running as Cordova app" : "Running as web site");
+        // loadTextAsset("assets/test.txt").then((v) => LOG(v));
+        // loadBufferAsset("assets/test.png").then((v) => LOG(`${v.byteLength} bytes`));
+        // TEST fetch redirect
+        fetch("assets/test.txt").then(res => res.text()).then(txt => console.log(txt));
+        fetch("assets/test.png").then(res => res.arrayBuffer()).then(buf => LOG(`Buffer: ${buf.byteLength} bytes`));
+        // fetch("https://www.nu.nl/").then(res => {
+        //     console.log(`Remote, type =`);
+        //     console.log(res.body);
+        // });
+    });
+}
+
+async function loadCordova() {
+    return new Promise(
+        /**
+         *
+         * @param {(undefined) => void} resolve
+         * @param {(err: string) => void} reject
+         */
+        (resolve, reject) => {
+            const script = document.createElement('script');
+            script.setAttribute('src', CORDOVA_LOCATION);
+            script.onload = function handleScriptLoaded() {
+                console.log('script has loaded');
+                resolve(undefined);
+            };
+
+            script.onerror = function handleScriptError() {
+                console.log('error loading script');
+                reject('error loading script');
+            };
+
+            document.head.appendChild(script);
+        }
+    );
+}
