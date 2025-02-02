@@ -4,7 +4,19 @@
 
 const CORDOVA_LOCATION = "file:///android_asset/www/cordova.js";
 
-var _cordovaActive = false;
+/**
+ * Initialize site dock support by attempting to load and initialize Cordova.
+ */
+export async function initCordova() {
+    try {
+        await loadCordova();
+        LOG("Cordova support active");
+    }
+    catch (e) {
+        console.log(e);
+    }
+    return await waitForDevice();
+}
 
 function waitForDevice() {
     return new Promise(
@@ -14,7 +26,6 @@ function waitForDevice() {
          */
         (resolve, _reject) => {
             const onDeviceReady = () => {
-                _cordovaActive = true;
                 LOG("Cordova device ready");
                 redirectFetch();
                 resolve(true);
@@ -76,35 +87,32 @@ function LOG(s) {
 }
 
 /**
+ * Loads a buffer using the file protocol.
+ * Note: can only be called if Cordova has been successfully initialized.
  * @param {string} fpath
  */
 function loadBufferAsset(fpath) {
-    if (_cordovaActive) {
-        return new Promise(
-            /**
-             * @param {(v: ArrayBuffer) => void} resolve
-             * @param {(v: string) => void} reject
-             */
-            (resolve, reject) => {
-                corLoadLocalFile(fpath, "buffer",
-                    v => {
-                        if (v instanceof ArrayBuffer) {
-                            resolve(v);
-                        }
-                        else {
-                            throw new Error("Unexpected return type");
-                        }
-                    },
-                    err => {
-                        reject(err);
+    return new Promise(
+        /**
+         * @param {(v: ArrayBuffer) => void} resolve
+         * @param {(v: string) => void} reject
+         */
+        (resolve, reject) => {
+            corLoadLocalFile(fpath, "buffer",
+                v => {
+                    if (v instanceof ArrayBuffer) {
+                        resolve(v);
                     }
-                );
-            }
-        );
-    }
-    else {
-        return fetch(fpath).then(res => res.arrayBuffer());
-    }
+                    else {
+                        throw new Error("Unexpected return type");
+                    }
+                },
+                err => {
+                    reject(err);
+                }
+            );
+        }
+    );
 }
 
 /**
@@ -158,17 +166,6 @@ function corLoadLocalFile(rpath, format, cb, err) {
             LOG(e);
             err(`Error reading file ${fpath}`);
         });
-}
-
-export async function initCordova() {
-    try {
-        await loadCordova();
-        LOG("Cordova support active");
-    }
-    catch (e) {
-        console.log(e);
-    }
-    return await waitForDevice();
 }
 
 /**

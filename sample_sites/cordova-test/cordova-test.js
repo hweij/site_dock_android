@@ -12,7 +12,7 @@ const b = await initCordova();
 LOG(b ? "Running as Cordova app" : "Running as web site");
 // TEST fetch redirect
 fetch("assets/test.txt").then(res => res.text()).then(txt => console.log(txt));
-fetch("assets/test.png").then(res => res.arrayBuffer()).then(buf => LOG(`Buffer: ${buf.byteLength} bytes`));
+fetch("assets/test.png").then(res => res.arrayBuffer()).then(buf => LOG(`Buffer length: ${buf.byteLength} bytes`));
 // fetch("https://www.nu.nl/").then(res => {
 //     console.log(`Remote, type =`);
 //     console.log(res.body);
