@@ -38,3 +38,8 @@ There are a few notes to be mentioned:
   path and serve the content of the matching local file using the file API.
 
   `<preference name="AndroidInsecureFileModeEnabled" value="true" />`
+
+## Credits
+
+Cordova-installation pains avoided by using Docker and https://github.com/beevelop/docker-cordova.
+
