@@ -6,6 +6,8 @@ const CORDOVA_LOCATION = "file:///android_asset/www/cordova.js";
 
 var _cordovaActive = false;
 
+var logs = [];
+
 function initCordova() {
     return new Promise(
         /**
@@ -72,11 +74,12 @@ export function getRootDir() {
 }
 
 function LOG(s) {
-    const win = document.getElementById("divLogs");
-    if (win) {
-        win.insertAdjacentText("beforeend", `${s}\n`);
-    }
+    logs.push(s);
     console.log(s);
+}
+
+export function getLogs() {
+    return logs;
 }
 
 /**
@@ -164,24 +167,15 @@ function corLoadLocalFile(rpath, format, cb, err) {
         });
 }
 
-try {
-    await loadCordova();
-    LOG("Cordova support active");
-}
-catch (e) {
-    console.log(e);
-}
-finally {
-    initCordova().then((b) => {
-        LOG(b ? "Running as Cordova app" : "Running as web site");
-        // TEST fetch redirect
-        fetch("assets/test.txt").then(res => res.text()).then(txt => console.log(txt));
-        fetch("assets/test.png").then(res => res.arrayBuffer()).then(buf => LOG(`Buffer: ${buf.byteLength} bytes`));
-        // fetch("https://www.nu.nl/").then(res => {
-        //     console.log(`Remote, type =`);
-        //     console.log(res.body);
-        // });
-    });
+export async function startCordova() {
+    try {
+        await loadCordova();
+        LOG("Cordova support active");
+    }
+    catch (e) {
+        console.log(e);
+    }
+    return await initCordova();
 }
 
 /**
