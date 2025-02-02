@@ -166,6 +166,7 @@ function corLoadLocalFile(rpath, format, cb, err) {
 
 try {
     await loadCordova();
+    LOG("Cordova support active");
 }
 catch (e) {
     console.log(e);
@@ -173,8 +174,6 @@ catch (e) {
 finally {
     initCordova().then((b) => {
         LOG(b ? "Running as Cordova app" : "Running as web site");
-        // loadTextAsset("assets/test.txt").then((v) => LOG(v));
-        // loadBufferAsset("assets/test.png").then((v) => LOG(`${v.byteLength} bytes`));
         // TEST fetch redirect
         fetch("assets/test.txt").then(res => res.text()).then(txt => console.log(txt));
         fetch("assets/test.png").then(res => res.arrayBuffer()).then(buf => LOG(`Buffer: ${buf.byteLength} bytes`));
@@ -185,24 +184,23 @@ finally {
     });
 }
 
+/**
+ * Attempts to load Cordova by inserting the script in the HTML-header.
+ */
 async function loadCordova() {
     return new Promise(
         /**
-         *
          * @param {(undefined) => void} resolve
          * @param {(err: string) => void} reject
          */
         (resolve, reject) => {
             const script = document.createElement('script');
-            script.setAttribute('src', CORDOVA_LOCATION);
-            script.onload = function handleScriptLoaded() {
-                console.log('script has loaded');
-                resolve(undefined);
-            };
+            script.src = CORDOVA_LOCATION;
 
-            script.onerror = function handleScriptError() {
-                console.log('error loading script');
-                reject('error loading script');
+            script.onload = resolve
+
+            script.onerror = () => {
+                reject('Cordova script load failed');
             };
 
             document.head.appendChild(script);
