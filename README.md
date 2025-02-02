@@ -30,11 +30,11 @@ There are a few notes to be mentioned:
 
 ## Trickery
 
-- We need to enable insecure file mode in the Cordova config.xml.
+- We need to enable insecure file mode in the Cordova `config.xml`.
   This will make use of the file protocol, so we can access the
   data folders outside of the normal www root. When using http(s),
   this is not possible.
-- Cordova does not allow file:// fetches, so we redirect fetches with a relative
+- Cordova does not allow `file://` fetches, so we redirect fetches with a relative
   path and serve the content of the matching local file using the file API.
 
-<preference name="AndroidInsecureFileModeEnabled" value="true" />
+  `<preference name="AndroidInsecureFileModeEnabled" value="true" />`
