@@ -1,14 +1,13 @@
 // @ts-check
 
-import { getLogs, startCordova } from "./cordova-android.js";
+import { initCordova } from "./cordova-android.js";
 
+// *****
 // ADD THIS TO ENABLE CORDOVA SUPPORT:
 // Check for Cordova support before doing any fetches or other related stuff
-const b = await startCordova();
-
-for (const s of getLogs()) {
-    LOG(s);
-}
+const b = await initCordova();
+// Start the code after Cordova has been initialized ( or failed to initialize)
+// *****
 
 LOG(b ? "Running as Cordova app" : "Running as web site");
 // TEST fetch redirect

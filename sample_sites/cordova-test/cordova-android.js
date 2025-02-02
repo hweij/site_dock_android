@@ -6,9 +6,7 @@ const CORDOVA_LOCATION = "file:///android_asset/www/cordova.js";
 
 var _cordovaActive = false;
 
-var logs = [];
-
-function initCordova() {
+function waitForDevice() {
     return new Promise(
         /**
          *
@@ -74,12 +72,7 @@ export function getRootDir() {
 }
 
 function LOG(s) {
-    logs.push(s);
     console.log(s);
-}
-
-export function getLogs() {
-    return logs;
 }
 
 /**
@@ -167,7 +160,7 @@ function corLoadLocalFile(rpath, format, cb, err) {
         });
 }
 
-export async function startCordova() {
+export async function initCordova() {
     try {
         await loadCordova();
         LOG("Cordova support active");
@@ -175,7 +168,7 @@ export async function startCordova() {
     catch (e) {
         console.log(e);
     }
-    return await initCordova();
+    return await waitForDevice();
 }
 
 /**
