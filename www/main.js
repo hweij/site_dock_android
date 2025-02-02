@@ -7,20 +7,29 @@ import "./web-components.js";
 import { SiteEntry } from "./web-components.js";
 
 const bLoadRemote = /** @type HTMLButtonElement */(document.getElementById("bLoadRemote"));
-const inputStartURL = /** @type HTMLInputElement */(document.getElementById("inputStartURL"));
+const inputRemoteURL = /** @type HTMLInputElement */(document.getElementById("inputRemoteURL"));
+const selAutoStart = /** @type HTMLSelectElement */(document.getElementById("selAutoStart"));
 
 // Get settings
-var startURL = localStorage.getItem("startURL");
-inputStartURL.onblur = () => {
-    startURL = inputStartURL.value;
-    localStorage.setItem("startURL", startURL);
-    console.log(`Set new start URL: ${startURL}`);
+var remoteURL = localStorage.getItem("remoteURL");
+inputRemoteURL.onblur = () => {
+    remoteURL = inputRemoteURL.value;
+    localStorage.setItem("remoteURL", remoteURL);
+    console.log(`Set new remote URL: ${remoteURL}`);
+    updateUI();
+}
+var autoStart = localStorage.getItem("autoStart");
+selAutoStart.onchange = () => {
+    autoStart = selAutoStart.value;
+    localStorage.setItem("autoStart", autoStart);
+    console.log(`Change: [${autoStart}]`);
     updateUI();
 }
 
 function updateUI() {
-    bLoadRemote.disabled = !Boolean(startURL);
-    inputStartURL.value = startURL || "";
+    bLoadRemote.disabled = !Boolean(remoteURL);
+    inputRemoteURL.value = remoteURL || "";
+    selAutoStart.value = autoStart || "";
 }
 
 CORD.initCordova((status) => {
@@ -41,7 +50,7 @@ const bPickFile = /** @type HTMLButtonElement */(document.getElementById("bPickF
 bPickFile.onclick = async () => {
     const [handle] = await window.showOpenFilePicker(
         {
-            // No selectable files on Andrid when filters used..
+            // No selectable files on Android when filters used..
             // types: [
             //     {
             //         description: "Sites",
@@ -72,24 +81,56 @@ bPickFile.onclick = async () => {
 }
 
 function updateSitesList() {
-    getLocalSites(CORD.getDataDirectory(), (sites) => {
-        const divSites = /** @type HTMLElement */(document.getElementById("divSites"));
-        divSites.innerHTML = "";
-        for (const site of sites) {
-            const el = /** @type SiteEntry */ (SiteEntry.create(divSites));
-            el.content = site.info?.name || site.name;
-            el.onAction = (action) => {
-                switch (action) {
-                    case "launch":
-                        CORD.openSite(`${site.name}/index.html`);
-                        break;
-                    case "delete":
-                        deleteSite(site.name);
-                        break;
-                }
+    getLocalSites(CORD.getDataDirectory(),
+        (sites) => showSites(sites),
+        err => {
+            console.log(err);
+            showDebug(err);
+            // For now, create a fake list
+            const sites = [
+                { name: "app1" },
+                { name: "app1" },
+                { name: "app1" }
+            ];
+            showSites(sites);
+        });
+}
+
+/**
+ *
+ * @param {any[]} sites
+ */
+function showSites(sites) {
+    /** Update listed entries */
+    const divSites = /** @type HTMLElement */(document.getElementById("divSites"));
+    divSites.innerHTML = "";
+    for (const site of sites) {
+        const el = /** @type SiteEntry */ (SiteEntry.create(divSites));
+        el.content = site.info?.name || site.name;
+        el.onAction = (action) => {
+            switch (action) {
+                case "launch":
+                    CORD.openSite(`${site.name}/index.html`);
+                    break;
+                case "delete":
+                    deleteSite(site.name);
+                    break;
             }
         }
-    })
+    }
+    // Update start app options
+    selAutoStart.options.length = 1;    // Keep only the "none" option
+    for (const site of sites) {
+        const label = site.info?.name || site.name;
+        const option = document.createElement("option");
+        option.value = site.name;
+        option.innerText = label;
+        selAutoStart.appendChild(option);
+        //        selAutoStart.insertAdjacentHTML("beforeend", `<options value="${site.name}">${label}</option>`);
+    }
+
+    // Make sure the UI is in sync
+    updateUI();
 }
 
 /**
@@ -113,8 +154,9 @@ async function deleteSite(name) {
  *
  * @param {string} dir
  * @param {(sites: any[]) => void} cb
+ * @param {(e: string) => void} err
  */
-function getLocalSites(dir, cb) {
+function getLocalSites(dir, cb, err) {
     const res = [];
     console.log("GET LOCAL SITES in " + dir);
     window.resolveLocalFileSystemURL(dir,
@@ -150,6 +192,7 @@ function getLocalSites(dir, cb) {
                                             }
 
                                             reader.onerror = function (e) {
+                                                err(`Cannot read file ${fileEntry.fullPath}`);
                                                 console.log(`Error for`);
                                                 console.log(this.result);
                                                 if (!done) { done = true; nextEntry(); }
@@ -177,16 +220,16 @@ function getLocalSites(dir, cb) {
                     nextEntry();
                 },
                 (error) => {
-                    showDebug("readEntries error: " + error.code);
+                    err("readEntries error: " + error.code);
                 }
             );
         },
-        () => showDebug(`Error reading sites directory ${dir} `));
+        () => err(`Error reading sites directory ${dir} `));
 }
 
 bLoadRemote.onclick = () => {
-    if (startURL) {
-        window.open(startURL, "site_dock_remote");
+    if (remoteURL) {
+        window.open(remoteURL, "site_dock_remote");
     }
 }
 

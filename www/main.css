@@ -26,9 +26,9 @@ input {
     padding: 8px 0px;
 }
 
-#divStartURL {
+#divRemoteURL {
     display: grid;
     gap: 8px;
-    grid-template-columns: max-content auto;
+    grid-template-columns: max-content 1fr;
     padding: 8px 0px;
 }
