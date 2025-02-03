@@ -2,14 +2,19 @@
 
 // import { addScript as loadCordova } from "./android-cordova.js";
 
-const CORDOVA_LOCATION = "file:///android_asset/www/cordova.js";
+const CORDOVA_FILE_LOCATION = "file:///android_asset/www/cordova.js";
 
 /**
  * Initialize site dock support by attempting to load and initialize Cordova.
  */
-export async function initCordova() {
+export async function initCordova(cordovaIncludeLocation) {
+    if (!cordovaIncludeLocation) {
+        cordovaIncludeLocation = window.location.protocol === "file:"
+            ? CORDOVA_FILE_LOCATION
+            : "cordova.js"
+    }
     try {
-        await loadCordova();
+        await loadCordova(cordovaIncludeLocation);
         LOG("Cordova support active");
     }
     catch (e) {
@@ -27,7 +32,12 @@ function waitForDevice() {
         (resolve, _reject) => {
             const onDeviceReady = () => {
                 LOG("Cordova device ready");
-                redirectFetch();
+                // Redirect file, only if the file protocol is being used
+                // For http(s) there is not need since fetch will work.
+                if (window.location.protocol === "file:") {
+                    console.log(`Using protocol ${window.location.protocol}, redirecting fetch operations`);
+                    redirectFetch();
+                }
                 resolve(true);
             }
 
@@ -170,8 +180,9 @@ function corLoadLocalFile(rpath, format, cb, err) {
 
 /**
  * Attempts to load Cordova by inserting the script in the HTML-header.
+ * @param {string} cordovaIncludeLocation 
  */
-async function loadCordova() {
+async function loadCordova(cordovaIncludeLocation) {
     return new Promise(
         /**
          * @param {(undefined) => void} resolve
@@ -179,7 +190,7 @@ async function loadCordova() {
          */
         (resolve, reject) => {
             const script = document.createElement('script');
-            script.src = CORDOVA_LOCATION;
+            script.src = cordovaIncludeLocation;
 
             script.onload = resolve
 
