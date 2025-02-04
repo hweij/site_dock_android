@@ -6,21 +6,39 @@ const CORDOVA_FILE_LOCATION = "file:///android_asset/www/cordova.js";
 
 /**
  * Initialize site dock support by attempting to load and initialize Cordova.
+ *
+ * This function will attempt to:
+ * 1. Load the cordova.js include file
+ * 2. If found, initialize cordova and wait for it to finish
+ * 3. If this app uses the "file:" protocol, redirect fetches to local file loads
+ *
+ * @param {string} [cordovaIncludeLocation] Optional location of the cordova.js include to bypass the default
  */
 export async function initCordova(cordovaIncludeLocation) {
+    let success = false;
     if (!cordovaIncludeLocation) {
         cordovaIncludeLocation = window.location.protocol === "file:"
             ? CORDOVA_FILE_LOCATION
             : "cordova.js"
     }
     try {
-        await loadCordova(cordovaIncludeLocation);
-        LOG("Cordova support active");
+        await loadCordovaIncludeFile(cordovaIncludeLocation);
+        // Check if cordova is known and, if so, initialize
+        if (cordova) {
+            LOG("Cordova loaded, initializing..");
+            success = await waitForDevice();
+            if (success) {
+                LOG("succeeded");
+            }
+            else {
+                LOG("failed")
+            }
+        }
     }
     catch (e) {
         console.log(e);
     }
-    return await waitForDevice();
+    return success;
 }
 
 function waitForDevice() {
@@ -44,7 +62,6 @@ function waitForDevice() {
             try {
                 if (cordova) {
                     // Wait for the deviceready event before using any of Cordova's device APIs.
-                    // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
                     document.addEventListener('deviceready', onDeviceReady, false);
                 }
             }
@@ -68,11 +85,8 @@ function redirectFetch() {
             console.log(args);
             if (!args[0].startsWith("http")) {
                 console.log(`File fetch [${args[0]}]`);
-                return new Promise((accept, reject) => {
-                    // TODO: create a proper response, not just a text string in the bodyInit
-                    // Make sure it works for all assets (fonts, audio, etc.)
-                    // Set proper status, etc.
-                    loadBufferAsset(args[0]).then(buffer => accept(new Response(buffer, { status: 200, statusText: "OK" })));
+                return new Promise((accept, _reject) => {
+                    loadLocalFile(args[0]).then(buffer => accept(new Response(buffer, { status: 200, statusText: "OK" })));
                 });
             }
             let temp = target.apply(that, args);
@@ -101,7 +115,7 @@ function LOG(s) {
  * Note: can only be called if Cordova has been successfully initialized.
  * @param {string} fpath
  */
-function loadBufferAsset(fpath) {
+function loadLocalFile(fpath) {
     return new Promise(
         /**
          * @param {(v: ArrayBuffer) => void} resolve
@@ -180,9 +194,9 @@ function corLoadLocalFile(rpath, format, cb, err) {
 
 /**
  * Attempts to load Cordova by inserting the script in the HTML-header.
- * @param {string} cordovaIncludeLocation 
+ * @param {string} cordovaIncludeLocation
  */
-async function loadCordova(cordovaIncludeLocation) {
+async function loadCordovaIncludeFile(cordovaIncludeLocation) {
     return new Promise(
         /**
          * @param {(undefined) => void} resolve
